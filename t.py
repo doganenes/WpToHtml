@@ -33,18 +33,15 @@ def start_selenium():
     options = Options()
     options.add_experimental_option("detach", True)
     
-    # ChromeDriver'ı başlatıyoruz
     service = Service("chromedriver.exe")
     driver = webdriver.Chrome(service=service, options=options)
 
     driver.get("https://web.whatsapp.com")
     
-    # QR kodu taratıp oturum açmayı bekliyoruz
     print("QR kodunu taradıktan sonra ENTER'a bas...")
-    input()  # QR kodunu tarattıktan sonra ENTER'a basılmasını bekliyoruz
+    input()
 
-    # Sayfayı yenileyelim, bu durumda giriş bilgileri (sessionStorage/localStorage) kaybolmayacak
-    time.sleep(5)  # WhatsApp Web'in yüklenmesini bekleyelim
+    time.sleep(5)
     driver.refresh()
 
 def check_messages(keywords):
@@ -173,8 +170,8 @@ def run_flask():
 def run_gui():
     global keyword_entry
 
-    ctk.set_appearance_mode("light")  # Açık tema
-    ctk.set_default_color_theme("blue")  # Varsayılan renk teması
+    ctk.set_appearance_mode("light")
+    ctk.set_default_color_theme("blue")
 
     root = ctk.CTk()
     root.title("WhatsApp Otomatik Mesaj Takip")
