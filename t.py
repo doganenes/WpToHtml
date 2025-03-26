@@ -14,35 +14,38 @@ from bs4 import BeautifulSoup
 import re
 from flask import Flask, render_template, jsonify, request
 import socket
-import customtkinter as ctk
-
+import os
+from dotenv import load_dotenv
 
 driver = None
 keyword_entry = None
+text_area = None
 
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
+load_dotenv()
 
 computer_name = socket.gethostname()
+chrome_user_data_dir = os.getenv("CHROME_USER_DATA_DIR")
 
 def start_selenium():
     """Selenium WebDriver'ı başlatır ve WhatsApp Web'i açar."""
     global driver
+    print(computer_name)
     options = Options()
+    options.add_argument(fr"user-data-dir={chrome_user_data_dir}")
+    options.add_argument(f"{computer_name}") 
     options.add_experimental_option("detach", True)
-    
     service = Service("chromedriver.exe")
     driver = webdriver.Chrome(service=service, options=options)
 
     driver.get("https://web.whatsapp.com")
-    
-    print("QR kodunu taradıktan sonra ENTER'a bas...")
-    input()
+    input(
+        "QR kodunu taradıktan sonra ENTER'a bas..."
+    )
 
-    time.sleep(5)
-    driver.refresh()
 
 def check_messages(keywords):
     """Tüm sohbetlere tıklayıp mesajları kontrol eder."""
@@ -131,7 +134,7 @@ def check_messages(keywords):
 
 def update_messages():
     """GUI ile eşleşen mesajları günceller."""
-    global driver, keyword_entry
+    global driver, keyword_entry, text_area
     if driver is None:
         print("HATA: Selenium başlatılmadı!")
         return
@@ -139,6 +142,12 @@ def update_messages():
     keywords = keyword_entry.get().split(",")
     messages = check_messages(keywords)
     print(messages)
+    text_area.config(state=tk.NORMAL)
+    text_area.delete(1.0, tk.END)
+    for msg in messages:
+        text_area.insert(tk.END, msg + "\n")
+    text_area.config(state=tk.DISABLED)
+
 
 def start_scraping():
     """Mesajları sürekli kontrol eder."""
@@ -168,42 +177,35 @@ def run_flask():
 
 
 def run_gui():
-    global keyword_entry
+    global keyword_entry, text_area
 
-    ctk.set_appearance_mode("light")
-    ctk.set_default_color_theme("blue")
-
-    root = ctk.CTk()
+    root = tk.Tk()
     root.title("WhatsApp Otomatik Mesaj Takip")
     root.geometry("500x400")
-    root.resizable(False, False)
 
-    frame = ctk.CTkFrame(root, corner_radius=10)
-    frame.pack(expand=True, fill="both", padx=10, pady=10)
+    tk.Label(root, text="Anahtar Kelimeler (Virgülle Ayırın):").pack()
+    keyword_entry = tk.Entry(root, width=50)
+    keyword_entry.pack()
 
-    ctk.CTkLabel(frame, text="Anahtar Kelimeler (Virgülle Ayırın):", font=("Arial", 12, "bold")).pack(pady=5)
+    btn_update = tk.Button(root, text="Mesajları Güncelle", command=update_messages)
+    btn_update.pack()
 
-    keyword_entry = ctk.CTkEntry(frame, width=300, font=("Arial", 12))
-    keyword_entry.pack(pady=5)
+    text_area = tk.Text(root, height=15, width=60)
+    text_area.pack()
+    text_area.config(state=tk.DISABLED)
 
-    btn_update = ctk.CTkButton(frame, text="Mesajları Güncelle", width=200, corner_radius=15, fg_color="#4CAF50", hover_color="#45A049", command=update_messages)
-    btn_update.pack(pady=5)
+    btn_start = tk.Button(root, text="WhatsApp Web Aç", command=start_selenium)
+    btn_start.pack()
 
-    btn_start = ctk.CTkButton(frame, text="WhatsApp Web Aç", width=200, corner_radius=15, fg_color="#008CBA", hover_color="#007BB5", command=start_selenium)
-    btn_start.pack(pady=5)
-
-    btn_auto = ctk.CTkButton(
-        frame,
+    btn_auto = tk.Button(
+        root,
         text="Otomatik Takibi Başlat",
-        width=200,
-        corner_radius=15,
-        fg_color="#FF9800",
-        hover_color="#E68900",
         command=lambda: threading.Thread(target=start_scraping, daemon=True).start(),
     )
-    btn_auto.pack(pady=5)
+    btn_auto.pack()
 
     root.mainloop()
+
 
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
