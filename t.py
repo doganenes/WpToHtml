@@ -139,14 +139,26 @@ def check_messages(keywords):
 
     return matched_messages
 
+import webbrowser
+import time
+
 def start_scraping():
-    """Mesajları sürekli kontrol eder."""
+    """Mesajları sürekli kontrol eder ve get-messages API'sini tetikler."""
+    keywords = keyword_entry.get().split(",")
+    
+    try:
+        webbrowser.open(f"http://127.0.0.1:5000/get-messages?keywords={','.join(keywords)}", new=2)
+        print("Automatically opening the messages page in browser...")
+    except Exception as e:
+        print(f"Error opening the page: {e}")
+
     while True:
-        keywords = keyword_entry.get().split(",")
-        messages = check_messages(keywords)
-        print(messages)
-        time.sleep(60 * 30)
-   
+        try:
+            print(f"Checking messages for keywords: {','.join(keywords)}")
+            time.sleep(60 * 30) 
+        except Exception as e:
+            print(f"Error during scraping: {e}")
+
 @app.route("/get-messages", methods=["GET"])
 def get_messages():
     try:
