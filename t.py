@@ -17,6 +17,9 @@ import socket
 import os
 from dotenv import load_dotenv
 import customtkinter as ctk
+from datetime import datetime
+import requests
+import webbrowser
 
 driver = None
 keyword_entry = None
@@ -93,7 +96,9 @@ def check_messages(keywords):
                         soup = BeautifulSoup(html_content, "html.parser")
 
                         message_text = None
+                        timestamp = None
 
+                        # Extract message text
                         span_message = soup.find("span", class_="x78zum5 x1cy8zhl")
                         if span_message:
                             message_text = span_message.get_text()
@@ -111,11 +116,17 @@ def check_messages(keywords):
                         if not message_text:
                             message_text = element.text
 
+                        # Extract timestamp
+                        time_div = soup.find("div", class_="_ak8i")
+                        if time_div:
+                            timestamp = time_div.get_text()
+
                         if message_text and any(
                             keyword.lower() in message_text.lower()
                             for keyword in keywords
                         ):
-                            matched_messages.append(message_text)
+                            matched_messages.append({"message": message_text, "timestamp": timestamp})
+
                     except Exception as e:
                         print(f"Mesaj ayrıştırma hatası: {e}")
 
@@ -135,7 +146,7 @@ def start_scraping():
         messages = check_messages(keywords)
         print(messages)
         time.sleep(60 * 30)
-
+   
 @app.route("/get-messages", methods=["GET"])
 def get_messages():
     try:
@@ -162,6 +173,9 @@ def run_gui():
     root.title("WhatsApp Otomatik Mesaj Takip")
     root.geometry("500x250")
     root.resizable(False, False)
+
+    # Call start_selenium() here to open WhatsApp Web automatically
+    threading.Thread(target=start_selenium, daemon=True).start()
 
     frame = ctk.CTkFrame(root, corner_radius=10)
     frame.pack(expand=True, fill="both", padx=10, pady=10)
@@ -193,3 +207,4 @@ def run_gui():
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     run_gui()
+    app.run(debug=True)
