@@ -188,15 +188,15 @@ def run_gui():
     frame = ctk.CTkFrame(root, corner_radius=10)
     frame.pack(expand=True, fill="both", padx=10, pady=10)
 
-    ctk.CTkLabel(frame, text="Anahtar Kelimeler (Virgülle Ayırın):", font=("Arial", 12, "bold")).pack(pady=5)
+    ctk.CTkLabel(frame, text="Keywords (Seperate with commas):", font=("Arial", 12, "bold")).pack(pady=5)
 
     keyword_entry = ctk.CTkEntry(frame, width=300, font=("Arial", 12))
     keyword_entry.pack(pady=5)
 
-    btn_update = ctk.CTkButton(frame, text="Mesajları Güncelle", width=200, corner_radius=15, fg_color="#4CAF50", hover_color="#45A049", command=start_scraping)
+    btn_update = ctk.CTkButton(frame, text="Update Messages", width=200, corner_radius=15, fg_color="#4CAF50", hover_color="#45A049", command=start_scraping)
     btn_update.pack(pady=5)
 
-    btn_start = ctk.CTkButton(frame, text="WhatsApp Web Aç", width=200, corner_radius=15, fg_color="#008CBA", hover_color="#007BB5", command=start_selenium)
+    btn_start = ctk.CTkButton(frame, text="Open Whatsapp Web", width=200, corner_radius=15, fg_color="#008CBA", hover_color="#007BB5", command=start_selenium)
     btn_start.pack(pady=5)
 
     btn_auto = ctk.CTkButton(
