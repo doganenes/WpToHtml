@@ -34,7 +34,6 @@ computer_name = socket.gethostname()
 chrome_user_data_dir = os.getenv("CHROME_USER_DATA_DIR")
 
 def start_selenium():
-    """Selenium WebDriver'ı başlatır ve WhatsApp Web'i açar."""
     global driver
     print(computer_name)
     options = Options()
@@ -45,12 +44,11 @@ def start_selenium():
     driver = webdriver.Chrome(service=service, options=options)
 
     driver.get("https://web.whatsapp.com")
-    input("QR kodunu taradıktan sonra ENTER'a bas...")
+    input("After scanning the QR code, press ENTER...")
 
 def check_messages(keywords):
-    """Tüm sohbetlere tıklayıp mesajları kontrol eder."""
     if driver is None:
-        print("HATA: Selenium başlatılmadı!")
+        print("Error: Selenium not started!")
         return []
 
     matched_messages = []
@@ -128,14 +126,14 @@ def check_messages(keywords):
                             matched_messages.append({"message": message_text, "timestamp": timestamp})
 
                     except Exception as e:
-                        print(f"Mesaj ayrıştırma hatası: {e}")
+                        print(f"Message parsing error: {e}")
 
             except Exception as e:
-                print(f"Sohbet inceleme hatası: {e}")
+                print(f"Chat review error: {e}")
 
         input_bar.clear()
     except Exception as e:
-        print(f"Genel hata: {e}")
+        print(f"General error: {e}")
 
     return matched_messages
 
@@ -143,7 +141,6 @@ import webbrowser
 import time
 
 def start_scraping():
-    """Mesajları sürekli kontrol eder ve get-messages API'sini tetikler."""
     keywords = keyword_entry.get().split(",")
     
     try:
@@ -182,11 +179,10 @@ def run_gui():
     ctk.set_default_color_theme("blue")
 
     root = ctk.CTk()
-    root.title("WhatsApp Otomatik Mesaj Takip")
+    root.title("Whatsapp Automatic Message Tracking ")
     root.geometry("500x250")
     root.resizable(False, False)
 
-    # Call start_selenium() here to open WhatsApp Web automatically
     threading.Thread(target=start_selenium, daemon=True).start()
 
     frame = ctk.CTkFrame(root, corner_radius=10)
@@ -205,7 +201,7 @@ def run_gui():
 
     btn_auto = ctk.CTkButton(
         frame,
-        text="Otomatik Takibi Başlat",
+        text="Start Auto Tracking",
         width=200,
         corner_radius=15,
         fg_color="#FF9800",
