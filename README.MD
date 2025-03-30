@@ -21,7 +21,7 @@ WpToHtml extracts WhatsApp messages containing a specific keyword and displays t
 ## Installation
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/WpToHtml.git
+   git clone https://github.com/doganenes/WpToHtml.git
    cd WpToHtml
    ```
 2. Install dependencies:
