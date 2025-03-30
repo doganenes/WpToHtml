@@ -31,7 +31,7 @@ WpToHtml extracts WhatsApp messages containing a specific keyword and displays t
 3. Ensure `chromedriver.exe` is in the project directory.
 
 ## Usage
-1. Export your WhatsApp chat as a `.txt` file.
+1. Export your WhatsApp chat as a `.html` file.
 2. Place the exported chat file in the project directory.
 3. Start the Flask web server:
    ```bash
