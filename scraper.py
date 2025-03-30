@@ -164,13 +164,13 @@ def get_messages():
     try:
         keywords = request.args.get("keywords", "").split(",")
         messages = check_messages(keywords)
-        return render_template("t.html", messages=messages)
+        return render_template("template.html", messages=messages)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/")
 def index():
-    return render_template("t.html")
+    return render_template("template.html")
 
 def run_flask():
     app.run(host="127.0.0.1", port=5000, debug=False, threaded=True, use_reloader=False)
