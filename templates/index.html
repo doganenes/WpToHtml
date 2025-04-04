@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Messages</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <h1>WhatsApp Messages</h1>
+
+    <form method="get" action="/get-messages">
+        <label for="keywords">Keywords (Separate with commas):</label>
+        <input type="text" id="keywords" name="keywords">
+        <button type="submit">Search messages</button>
+    </form>
+
+    {% if messages %}
+        <h2>Messages:</h2>
+        <div class="container">
+            <div class="row">
+                {% for msg in messages %}
+                    <div class="col-md-12"> 
+                        <div class="message-card">
+                            <p>{{ msg.message }}</p>
+                            <p class="timestamp">{{ msg.timestamp }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <p class="no-message">Message not found!</p>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
