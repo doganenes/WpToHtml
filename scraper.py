@@ -69,9 +69,8 @@ def check_messages(keywords):
             EC.presence_of_element_located((By.XPATH, "//div[@contenteditable='true']"))
         )
 
-        # İçeriği temizle (CTRL + A ve DELETE ile)
-        input_bar.send_keys(Keys.CONTROL + "a")  # Tüm metni seç
-        input_bar.send_keys(Keys.DELETE)  # Seçili metni sil
+        input_bar.send_keys(Keys.CONTROL + "a")  
+        input_bar.send_keys(Keys.DELETE) 
         input_bar.send_keys(",".join(keywords))
         input_bar.send_keys(Keys.ENTER)
         time.sleep(1)
@@ -103,7 +102,6 @@ def check_messages(keywords):
                         message_text = None
                         timestamp = None
 
-                        # Extract message text
                         span_message = soup.find("span", class_="x78zum5 x1cy8zhl")
                         if span_message:
                             message_text = span_message.get_text()
@@ -121,7 +119,6 @@ def check_messages(keywords):
                         if not message_text:
                             message_text = element.text
 
-                        # Extract timestamp
                         time_div = soup.find("div", class_="_ak8i")
                         if time_div:
                             timestamp = time_div.get_text()
