@@ -1,0 +1,7 @@
+Flask
+selenium
+webdriver-manager
+beautifulsoup4
+requests
+python-dotenv
+customtkinter

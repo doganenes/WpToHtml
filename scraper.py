@@ -202,7 +202,7 @@ def run_gui():
     frame.pack(expand=True, fill="both", padx=10, pady=10)
 
     ctk.CTkLabel(
-        frame, text="Anahtar Kelimeler (Virgülle Ayırın):", font=("Arial", 12, "bold")
+        frame, text="Keywords (Seperate with commas):", font=("Arial", 12, "bold")
     ).pack(pady=5)
 
     keyword_entry = ctk.CTkEntry(frame, width=300, font=("Arial", 12))
@@ -210,7 +210,7 @@ def run_gui():
 
     btn_update = ctk.CTkButton(
         frame,
-        text="Mesajları Güncelle",
+        text="Update Messages",
         width=200,
         corner_radius=15,
         fg_color="#4CAF50",
@@ -221,7 +221,7 @@ def run_gui():
 
     btn_start = ctk.CTkButton(
         frame,
-        text="WhatsApp Web Aç",
+        text="Open WhatsApp Web",
         width=200,
         corner_radius=15,
         fg_color="#008CBA",
@@ -247,4 +247,3 @@ def run_gui():
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     run_gui()
-   
