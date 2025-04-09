@@ -1,2 +1,5 @@
 .env
 chromedriver.exe
+build/
+dist/
+*.spec

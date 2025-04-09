@@ -6,10 +6,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
 import threading
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
@@ -22,6 +20,8 @@ import customtkinter as ctk
 from datetime import datetime
 import requests
 import webbrowser
+import sys
+import platform
 
 driver = None
 keyword_entry = None
@@ -35,22 +35,40 @@ load_dotenv()
 computer_name = socket.gethostname()
 chrome_user_data_dir = os.getenv("CHROME_USER_DATA_DIR")
 
+def get_chrome_user_data_path():
+    """OS'e göre Chrome kullanıcı veri dizinini otomatik bulur"""
+    user_home = os.path.expanduser("~")
+    
+    if platform.system() == "Windows":
+        return os.path.join(user_home, "AppData", "Local", "Google", "Chrome", "User Data", "Profile 1")
+    elif platform.system() == "Darwin":
+        return os.path.join(user_home, "Library", "Application Support", "Google", "Chrome", "Profile 1")
+    else:  # Linux
+        return os.path.join(user_home, ".config", "google-chrome", "Profile 1")
+
+def get_chromedriver_path():
+    """EXE içinde veya normal çalışmada chromedriver yolunu bulur"""
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        
+    return os.path.join(base_path, "chromedriver.exe")
+
+chrome_user_data_dir = get_chrome_user_data_path()
 
 def start_selenium():
     global driver
     print(computer_name)
     options = Options()
-    options.add_argument(rf"user-data-dir={chrome_user_data_dir}")
-    options.add_argument("--log-level=3")
-
-    options.add_argument(f"{computer_name}")
+    options.add_argument(fr"user-data-dir={chrome_user_data_dir}")
+    options.add_argument(f"{computer_name}") 
     options.add_experimental_option("detach", True)
-    service = Service(r"WpToHtml\chromedriver.exe")
+    service = Service(get_chromedriver_path())
     driver = webdriver.Chrome(service=service, options=options)
 
     driver.get("https://web.whatsapp.com")
     input("After scanning the QR code, press ENTER...")
-
 
 def check_messages(keywords):
     if driver is None:
@@ -65,18 +83,18 @@ def check_messages(keywords):
         )
         ActionChains(driver).move_to_element(group_button).click().perform()
         time.sleep(1)
-        input_bar = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//div[@contenteditable='true']"))
-        )
 
-        input_bar.send_keys(Keys.CONTROL + "a")  
-        input_bar.send_keys(Keys.DELETE) 
+        input_bar = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.XPATH, "//*[@id='side']/div[1]/div/div[2]/div/div/div[1]/p")
+            )
+        )
         input_bar.send_keys(",".join(keywords))
-        input_bar.send_keys(Keys.ENTER)
-        time.sleep(1)
+        time.sleep(2)
+
         chat_list = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located(
-                (By.XPATH, "//*[@id='pane-side']/div[1]/div/div")
+                (By.XPATH, "//*[@id='pane-side']/div/div/div")
             )
         )
 
@@ -102,6 +120,7 @@ def check_messages(keywords):
                         message_text = None
                         timestamp = None
 
+                        # Extract message text
                         span_message = soup.find("span", class_="x78zum5 x1cy8zhl")
                         if span_message:
                             message_text = span_message.get_text()
@@ -119,6 +138,7 @@ def check_messages(keywords):
                         if not message_text:
                             message_text = element.text
 
+                        # Extract timestamp
                         time_div = soup.find("div", class_="_ak8i")
                         if time_div:
                             timestamp = time_div.get_text()
@@ -127,9 +147,7 @@ def check_messages(keywords):
                             keyword.lower() in message_text.lower()
                             for keyword in keywords
                         ):
-                            matched_messages.append(
-                                {"message": message_text, "timestamp": timestamp}
-                            )
+                            matched_messages.append({"message": message_text, "timestamp": timestamp})
 
                     except Exception as e:
                         print(f"Message parsing error: {e}")
@@ -137,23 +155,20 @@ def check_messages(keywords):
             except Exception as e:
                 print(f"Chat review error: {e}")
 
+        input_bar.clear()
     except Exception as e:
         print(f"General error: {e}")
 
     return matched_messages
 
-
 import webbrowser
 import time
 
-
 def start_scraping():
     keywords = keyword_entry.get().split(",")
-
+    
     try:
-        webbrowser.open(
-            f"http://127.0.0.1:5000/get-messages?keywords={','.join(keywords)}", new=2
-        )
+        webbrowser.open(f"http://127.0.0.1:5000/get-messages?keywords={','.join(keywords)}", new=2)
         print("Automatically opening the messages page in browser...")
     except Exception as e:
         print(f"Error opening the page: {e}")
@@ -161,10 +176,9 @@ def start_scraping():
     while True:
         try:
             print(f"Checking messages for keywords: {','.join(keywords)}")
-            time.sleep(60)
+            time.sleep(60 * 30) 
         except Exception as e:
             print(f"Error during scraping: {e}")
-
 
 @app.route("/get-messages", methods=["GET"])
 def get_messages():
@@ -175,15 +189,12 @@ def get_messages():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-
 @app.route("/")
 def index():
     return render_template("index.html")
 
-
 def run_flask():
     app.run(host="127.0.0.1", port=5000, debug=False, threaded=True, use_reloader=False)
-
 
 def run_gui():
     global keyword_entry
@@ -201,33 +212,15 @@ def run_gui():
     frame = ctk.CTkFrame(root, corner_radius=10)
     frame.pack(expand=True, fill="both", padx=10, pady=10)
 
-    ctk.CTkLabel(
-        frame, text="Keywords (Seperate with commas):", font=("Arial", 12, "bold")
-    ).pack(pady=5)
+    ctk.CTkLabel(frame, text="Keywords (Seperate with commas):", font=("Arial", 12, "bold")).pack(pady=5)
 
     keyword_entry = ctk.CTkEntry(frame, width=300, font=("Arial", 12))
     keyword_entry.pack(pady=5)
 
-    btn_update = ctk.CTkButton(
-        frame,
-        text="Update Messages",
-        width=200,
-        corner_radius=15,
-        fg_color="#4CAF50",
-        hover_color="#45A049",
-        command=start_scraping,
-    )
+    btn_update = ctk.CTkButton(frame, text="Update Messages", width=200, corner_radius=15, fg_color="#4CAF50", hover_color="#45A049", command=start_scraping)
     btn_update.pack(pady=5)
 
-    btn_start = ctk.CTkButton(
-        frame,
-        text="Open WhatsApp Web",
-        width=200,
-        corner_radius=15,
-        fg_color="#008CBA",
-        hover_color="#007BB5",
-        command=start_selenium,
-    )
+    btn_start = ctk.CTkButton(frame, text="Open Whatsapp Web", width=200, corner_radius=15, fg_color="#008CBA", hover_color="#007BB5", command=start_selenium)
     btn_start.pack(pady=5)
 
     btn_auto = ctk.CTkButton(
@@ -243,7 +236,7 @@ def run_gui():
 
     root.mainloop()
 
-
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     run_gui()
+    app.run(debug=True)
