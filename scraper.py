@@ -36,7 +36,6 @@ computer_name = socket.gethostname()
 chrome_user_data_dir = os.getenv("CHROME_USER_DATA_DIR")
 
 def get_chrome_user_data_path():
-    """OS'e göre Chrome kullanıcı veri dizinini otomatik bulur"""
     user_home = os.path.expanduser("~")
     
     if platform.system() == "Windows":
@@ -47,7 +46,6 @@ def get_chrome_user_data_path():
         return os.path.join(user_home, ".config", "google-chrome", "Profile 1")
 
 def get_chromedriver_path():
-    """EXE içinde veya normal çalışmada chromedriver yolunu bulur"""
     if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS
     else:
@@ -71,6 +69,7 @@ def start_selenium():
     input("After scanning the QR code, press ENTER...")
 
 def check_messages(keywords):
+    driver.get("https://web.whatsapp.com")
     if driver is None:
         print("Error: Selenium not started!")
         return []
