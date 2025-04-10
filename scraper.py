@@ -1,3 +1,4 @@
+import datetime
 import time
 import tkinter as tk
 from flask import Flask, jsonify, request, render_template
@@ -30,16 +31,24 @@ app = Flask(__name__)
 CORS(app)
 load_dotenv()
 
-computer_name = socket.gethostname()
+computer_name = os.getlogin()
+print(f"{computer_name}")
 chrome_user_data_dir = os.getenv("CHROME_USER_DATA_DIR")
 
+expiration_date = datetime(2025, 4, 10)
+
+
+def is_within_valid_period():
+    current_date = datetime.now()
+    time_difference = expiration_date - current_date
+    return time_difference >= datetime.timedelta(0) and time_difference <= datetime.timedelta(days=3)
 
 def get_chrome_user_data_path():
     user_home = os.path.expanduser("~")
 
     if platform.system() == "Windows":
         return os.path.join(
-            user_home, "AppData", "Local", "Google", "Chrome", "User Data", "Profile 17"
+            user_home, "AppData", "Local", "Google", "Chrome", "User Data", "Profile 1"
         )
     elif platform.system() == "Darwin":
         return os.path.join(
@@ -88,7 +97,7 @@ def check_messages(keywords):
             EC.element_to_be_clickable((By.ID, "group-filter"))
         )
         group_filter_btn.click()
-        time.sleep(5)
+        time.sleep(1)
 
         input_bar = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located(
@@ -96,14 +105,14 @@ def check_messages(keywords):
             )
         )
         input_bar.send_keys(",".join(keywords))
-        time.sleep(2)
+        time.sleep(1)
 
         chat_list = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located(
                 (By.XPATH, "//*[@id='pane-side']/div/div/div")
             )
         )
-        time.sleep(2)
+        time.sleep(1)
         for chat in chat_list:
             try:
                 ActionChains(driver).move_to_element(chat).click().perform()
@@ -176,6 +185,13 @@ def on_closing():
 
     os._exit(0)
 
+def multi_command():
+    if not is_within_valid_period():
+        print("❌ Geçerlilik süresi dolmuş. Program sonlandırılıyor.")
+        os._exit(0)
+    check_messages(keyword_entry.get().split(","))
+    
+    threading.Thread(target=start_scraping).start()
 
 """def check_messages_threaded(keywords):
     def task():
@@ -189,12 +205,12 @@ def on_closing():
 """
 
 def start_scraping():
-    time.sleep(2)
+    time.sleep(1)
     keywords = keyword_entry.get().split(",")
 
     try:
         webbrowser.open(
-            f"http://127.0.0.1:5000/get-messages?keywords={','.join(keywords)}", new=2
+            f"http://127.0.0.1:5005/get-messages?keywords={','.join(keywords)}", new=2
         )
         print("Opening messages page...")
     except Exception as e:
@@ -275,7 +291,8 @@ def run_gui():
         corner_radius=15,
         fg_color="#FF9800",
         hover_color="#E68900",
-        command=lambda: check_messages(keyword_entry.get().split(",")),
+        command=multi_command
+
     ).pack(pady=5)
     root.protocol("WM_DELETE_WINDOW", on_closing)
 
