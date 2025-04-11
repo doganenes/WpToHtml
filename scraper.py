@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime,timedelta
 import time
 import tkinter as tk
 from flask import Flask, jsonify, request, render_template
@@ -35,13 +35,13 @@ computer_name = os.getlogin()
 print(f"{computer_name}")
 chrome_user_data_dir = os.getenv("CHROME_USER_DATA_DIR")
 
-expiration_date = datetime(2025, 4, 10)
+expiration_date = datetime(2025, 4, 15)
 
 
 def is_within_valid_period():
     current_date = datetime.now()
     time_difference = expiration_date - current_date
-    return time_difference >= datetime.timedelta(0) and time_difference <= datetime.timedelta(days=3)
+    return time_difference >= timedelta(1) and time_difference <= timedelta(days=5)
 
 def get_chrome_user_data_path():
     user_home = os.path.expanduser("~")
@@ -291,7 +291,7 @@ def run_gui():
         corner_radius=15,
         fg_color="#FF9800",
         hover_color="#E68900",
-        command=multi_command
+        command=lambda: threading.Thread(target=multi_command).start()
 
     ).pack(pady=5)
     root.protocol("WM_DELETE_WINDOW", on_closing)
