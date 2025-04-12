@@ -253,6 +253,7 @@ def start_scraping():
     keywords = keyword_entry.get().split(",")
 
     try:
+
         webbrowser.open(
             f"http://127.0.0.1:5005/get-messages?keywords={','.join(keywords)}", new=2
         )
@@ -271,7 +272,7 @@ def start_scraping():
 def get_messages():
     try:
         keywords = request.args.get("keywords", "").split(",")
-
+        check_messages(keywords)
         return render_template("index.html", messages=matched_messages)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
