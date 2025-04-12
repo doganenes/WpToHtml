@@ -9,16 +9,16 @@
 </head>
 <body>
 
-    <h1>WhatsApp Messages</h1>
+    <h1>WhatsApp Mesajları</h1>
 
     <form method="get" action="/get-messages">
-        <label for="keywords">Keywords (Separate with commas):</label>
+        <label for="keywords">Anahtar Kelimeler (Virgülle Ayırın):</label>
         <input type="text" id="keywords" name="keywords">
-        <button type="submit">Search messages</button>
+        <button type="submit">Mesajları Ara</button>
     </form>
 
     {% if messages %}
-        <h2>Messages:</h2>
+        <h2>Mesajlar:</h2>
         <div class="container">
             <div class="row">
                 {% for msg in messages %}
@@ -32,7 +32,7 @@
             </div>
         </div>
     {% else %}
-        <p class="no-message">Message not found!</p>
+        <p class="no-message">Mesaj Bulunamadı!</p>
     {% endif %}
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>

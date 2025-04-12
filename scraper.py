@@ -19,6 +19,8 @@ import socket
 import os
 from dotenv import load_dotenv
 import customtkinter as ctk
+from PIL import Image, ImageDraw
+import pystray
 import webbrowser
 import sys
 import platform
@@ -35,13 +37,13 @@ computer_name = os.getlogin()
 print(f"{computer_name}")
 chrome_user_data_dir = os.getenv("CHROME_USER_DATA_DIR")
 
-expiration_date = datetime(2025, 4, 15)
-
+start_date = datetime(2025, 4, 10)
+end_date = start_date + timedelta(days=10)
 
 def is_within_valid_period():
     current_date = datetime.now()
-    time_difference = expiration_date - current_date
-    return time_difference >= timedelta(1) and time_difference <= timedelta(days=5)
+    return start_date <= current_date <= end_date
+
 
 def get_chrome_user_data_path():
     user_home = os.path.expanduser("~")
@@ -69,6 +71,33 @@ def get_chromedriver_path():
 
 chrome_user_data_dir = get_chrome_user_data_path()
 
+def create_image():
+    try:
+        return Image.open("whatsapp.png")
+    except Exception as e:
+        print(f"whatsapp.png yüklenemedi: {e}")
+        image = Image.new("RGB", (64, 64), "green")
+        draw = ImageDraw.Draw(image)
+        draw.rectangle((16, 16, 48, 48), fill="white")
+        return image
+
+def on_quit(icon, item):
+    print("System tray quit selected.")
+    icon.stop()
+    on_closing()
+
+def show_gui(icon, item):
+    icon.stop()
+    threading.Thread(target=run_gui).start()
+
+def setup_tray_icon():
+    image = create_image()
+    menu = pystray.Menu(
+        pystray.MenuItem("Show GUI", show_gui),
+        pystray.MenuItem("Exit", on_quit)
+    )
+    icon = pystray.Icon("whatsapp_tracker", image, "WhatsApp Tracker", menu)
+    icon.run()
 
 def start_selenium():
     global driver
@@ -88,7 +117,6 @@ def check_messages(keywords):
         print("Error: Selenium not started!")
         return []
 
-    driver.get("https://web.whatsapp.com")
     matched_messages = []
 
     try:
@@ -249,7 +277,7 @@ def run_gui():
     ctk.set_default_color_theme("blue")
 
     root = ctk.CTk()
-    root.title("Whatsapp Automatic Message Tracking")
+    root.title("Whatsapp Mesaj Otomasyonu")
     root.geometry("500x250")
     root.resizable(False, False)
 
@@ -259,14 +287,14 @@ def run_gui():
     frame.pack(expand=True, fill="both", padx=10, pady=10)
 
     ctk.CTkLabel(
-        frame, text="Keywords (Separate with commas):", font=("Arial", 12, "bold")
+        frame, text="Anahtar Kelimeler (Virgülle Ayırın):", font=("Arial", 12, "bold")
     ).pack(pady=5)
     keyword_entry = ctk.CTkEntry(frame, width=300, font=("Arial", 12))
     keyword_entry.pack(pady=5)
 
     ctk.CTkButton(
         frame,
-        text="Update Messages",
+        text="Mesajları Güncelle",
         width=200,
         corner_radius=15,
         fg_color="#4CAF50",
@@ -276,17 +304,7 @@ def run_gui():
 
     ctk.CTkButton(
         frame,
-        text="Open Whatsapp Web",
-        width=200,
-        corner_radius=15,
-        fg_color="#008CBA",
-        hover_color="#007BB5",
-        command=lambda: threading.Thread(target=start_selenium).start(),
-    ).pack(pady=5)
-
-    ctk.CTkButton(
-        frame,
-        text="Start Auto Tracking",
+        text="Mesaj Bulmaya Başla",
         width=200,
         corner_radius=15,
         fg_color="#FF9800",
@@ -300,4 +318,5 @@ def run_gui():
 
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
+    threading.Thread(target=setup_tray_icon).start()
     run_gui()
