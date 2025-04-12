@@ -1,4 +1,4 @@
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 import time
 import tkinter as tk
 from flask import Flask, jsonify, request, render_template
@@ -15,8 +15,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
-import socket
 import os
+from selenium.webdriver.common.keys import Keys
 from dotenv import load_dotenv
 import customtkinter as ctk
 from PIL import Image, ImageDraw
@@ -39,6 +39,7 @@ chrome_user_data_dir = os.getenv("CHROME_USER_DATA_DIR")
 
 start_date = datetime(2025, 4, 10)
 end_date = start_date + timedelta(days=10)
+
 
 def is_within_valid_period():
     current_date = datetime.now()
@@ -71,6 +72,7 @@ def get_chromedriver_path():
 
 chrome_user_data_dir = get_chrome_user_data_path()
 
+
 def create_image():
     try:
         return Image.open("whatsapp.png")
@@ -81,23 +83,26 @@ def create_image():
         draw.rectangle((16, 16, 48, 48), fill="white")
         return image
 
+
 def on_quit(icon, item):
     print("System tray quit selected.")
     icon.stop()
     on_closing()
 
+
 def show_gui(icon, item):
     icon.stop()
     threading.Thread(target=run_gui).start()
 
+
 def setup_tray_icon():
     image = create_image()
     menu = pystray.Menu(
-        pystray.MenuItem("Show GUI", show_gui),
-        pystray.MenuItem("Exit", on_quit)
+        pystray.MenuItem("Show GUI", show_gui), pystray.MenuItem("Exit", on_quit)
     )
     icon = pystray.Icon("whatsapp_tracker", image, "WhatsApp Tracker", menu)
     icon.run()
+
 
 def start_selenium():
     global driver
@@ -111,16 +116,22 @@ def start_selenium():
     input("After scanning the QR code, press ENTER...")
 
 
+matched_messages = []
+
+
 def check_messages(keywords):
+
+    if len(matched_messages) > 0:
+        matched_messages.clear()
+
     global driver
     if driver is None:
         print("Error: Selenium not started!")
         return []
 
-    matched_messages = []
-
     try:
-        wait = WebDriverWait(driver, 60)
+        driver.get("https://web.whatsapp.com")
+        wait = WebDriverWait(driver, 20)
         group_filter_btn = wait.until(
             EC.element_to_be_clickable((By.ID, "group-filter"))
         )
@@ -132,6 +143,8 @@ def check_messages(keywords):
                 (By.XPATH, "//*[@id='side']/div[1]/div/div[2]/div/div/div[1]/p")
             )
         )
+        input_bar.send_keys(Keys.CONTROL + "a")  # Tüm metni seç
+        input_bar.send_keys(Keys.DELETE)  # Seçili metni sil
         input_bar.send_keys(",".join(keywords))
         time.sleep(1)
 
@@ -213,13 +226,15 @@ def on_closing():
 
     os._exit(0)
 
+
 def multi_command():
     if not is_within_valid_period():
         print("❌ Geçerlilik süresi dolmuş. Program sonlandırılıyor.")
         os._exit(0)
     check_messages(keyword_entry.get().split(","))
-    
+
     threading.Thread(target=start_scraping).start()
+
 
 """def check_messages_threaded(keywords):
     def task():
@@ -231,6 +246,7 @@ def multi_command():
 
     threading.Thread(target=task, daemon=True).start()
 """
+
 
 def start_scraping():
     time.sleep(1)
@@ -255,8 +271,8 @@ def start_scraping():
 def get_messages():
     try:
         keywords = request.args.get("keywords", "").split(",")
-        messages = check_messages(keywords)
-        return render_template("index.html", messages=messages)
+
+        return render_template("index.html", messages=matched_messages)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -309,12 +325,12 @@ def run_gui():
         corner_radius=15,
         fg_color="#FF9800",
         hover_color="#E68900",
-        command=lambda: threading.Thread(target=multi_command).start()
-
+        command=lambda: threading.Thread(target=multi_command).start(),
     ).pack(pady=5)
     root.protocol("WM_DELETE_WINDOW", on_closing)
 
     root.mainloop()
+
 
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
