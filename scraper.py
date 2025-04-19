@@ -143,8 +143,8 @@ def check_messages(keywords):
                 (By.XPATH, "//*[@id='side']/div[1]/div/div[2]/div/div/div[1]/p")
             )
         )
-        input_bar.send_keys(Keys.CONTROL + "a")  # Tüm metni seç
-        input_bar.send_keys(Keys.DELETE)  # Seçili metni sil
+        input_bar.send_keys(Keys.CONTROL + "a")  
+        input_bar.send_keys(Keys.DELETE) 
         input_bar.send_keys(",".join(keywords))
         time.sleep(1)
 
@@ -215,12 +215,12 @@ def check_messages(keywords):
 
 
 def on_closing():
-    print("🛑 Kapatılıyor...")
+    print("Shut down...")
 
     try:
         if driver:
             driver.quit()
-            print("✅ Selenium kapatıldı.")
+            print(" Selenium closed.")
     except Exception as e:
         print(f"❌ Selenium kapatılamadı: {e}")
 
@@ -229,23 +229,12 @@ def on_closing():
 
 def multi_command():
     if not is_within_valid_period():
-        print("❌ Geçerlilik süresi dolmuş. Program sonlandırılıyor.")
+        print("❌ Expired. The program terminated.")
         os._exit(0)
     check_messages(keyword_entry.get().split(","))
 
     threading.Thread(target=start_scraping).start()
 
-
-"""def check_messages_threaded(keywords):
-    def task():
-        print("📥 Threaded check started...")
-        messages = check_messages(keywords)
-        print(f"✅ Found {len(messages)} messages")
-        for msg in messages:
-            print(f"[{msg['timestamp']}] {msg['message']}")
-
-    threading.Thread(target=task, daemon=True).start()
-"""
 
 
 def start_scraping():

@@ -3,3 +3,7 @@ chromedriver.exe
 build/
 dist/
 *.spec
+
+
+
+test.py
